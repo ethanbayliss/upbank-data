@@ -22,7 +22,9 @@ def main():
     if not testUpbankApi():
         print("YNAB API connection failed, please check your config file")
         exit()
-    getUpAccounts()
+    bankAccounts = getUpAccounts()
+
+    getTransactions(bankAccounts)
 
 
 def testUpbankApi():
@@ -56,8 +58,27 @@ def testYnabApi():
 def getUpAccounts():
     """Get a list of all up bank accounts aka savers"""
     resp = requests.get("{}/accounts".format(UP_API_ENDPOINT),headers=UP_CREDS_HEADER)
+
+    if resp.status_code == 200:
+        print("Found Up Bank Accounts: ")
+        for account in json.loads(resp.content)["data"]:
+            print("\t{}".format(account["attributes"]["displayName"]))
+    if resp.status_code != 200:
+        print("Up Bank connection failed: GET /accounts {}".format(resp.status_code))
+    return json.loads(resp.content)["data"]
+
+def getTransactions(bankAccounts):
+    """Get past x days of transactions from the cheque account"""
+    chequeAccount = []
+
+    for account in bankAccounts:
+        if account["attributes"]["accountType"] == "TRANSACTIONAL":
+            chequeAccount = account
+            break
+
+    resp = requests.get(chequeAccount["relationships"]["transactions"]["links"]["related"],headers=UP_CREDS_HEADER)
+    #todo
     print(json.loads(resp.content))
-    
 
 if __name__ == "__main__":
     main()
