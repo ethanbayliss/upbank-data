@@ -2,6 +2,7 @@
 import conf
 import requests
 import json
+from datetime import datetime, timedelta
 
 #conf
 conf.load("config.json")
@@ -22,9 +23,12 @@ def main():
     if not testUpbankApi():
         print("YNAB API connection failed, please check your config file")
         exit()
+
     bankAccounts = getUpAccounts()
 
-    getTransactions(bankAccounts)
+    for account in bankAccounts:
+        #print(account)
+        getTransactions(account)
 
 
 def testUpbankApi():
@@ -69,16 +73,25 @@ def getUpAccounts():
 
 def getTransactions(bankAccounts):
     """Get past x days of transactions from the cheque account"""
-    chequeAccount = []
+    transactions = []
+    filteredTransactions = []
 
     for account in bankAccounts:
+        print(account)
         if account["attributes"]["accountType"] == "TRANSACTIONAL":
             chequeAccount = account
             break
 
     resp = requests.get(chequeAccount["relationships"]["transactions"]["links"]["related"],headers=UP_CREDS_HEADER)
-    #todo
+    transactions = json.loads(resp.content)["data"]
+
+    for transaction in transactions:
+        if datetime.fromisoformat(transaction["createdAt"]) >= (datetime.now() + timedelta(days=-30)):
+            print(transaction["attributes"]["amount"]["value"])
+
     print(json.loads(resp.content))
+
+    return filteredTransactions
 
 if __name__ == "__main__":
     main()
