@@ -16,13 +16,13 @@ UP_CREDS_HEADER = {"Authorization": "Bearer {}".format(conf.get("upbankApiKey"))
 YNAB_CREDS_HEADER = {"Authorization": "Bearer {}".format(conf.get("ynabAccessToken"))}
 
 def main():
-    """Main function ran on script startup"""
+    #Main function ran on script startup
     if not testYnabApi():
         print("YNAB API connection failed, please check your config file")
-        exit()
+        exit(1)
     if not testUpbankApi():
         print("YNAB API connection failed, please check your config file")
-        exit()
+        exit(1)
 
     bankAccounts = getUpAccounts()
 
@@ -32,7 +32,7 @@ def main():
 
 
 def testUpbankApi():
-    """Make a call to up bank's API and parse result to determine if key is correct"""
+    #Make a call to up bank's API and parse result to determine if key is correct
     apiStatus = False
 
     resp = requests.get("{}/util/ping".format(UP_API_ENDPOINT),headers=UP_CREDS_HEADER)
@@ -45,7 +45,7 @@ def testUpbankApi():
     return apiStatus
 
 def testYnabApi():
-    """Make a call to YNAB API to test key"""
+    #Make a call to YNAB API to test key
     apiStatus = False
 
     resp = requests.get("{}/budgets".format(YNAB_API_ENDPOINT),headers=YNAB_CREDS_HEADER)
@@ -60,7 +60,7 @@ def testYnabApi():
     return apiStatus
 
 def getUpAccounts():
-    """Get a list of all up bank accounts aka savers"""
+    #Get a list of all up bank accounts aka savers
     resp = requests.get("{}/accounts".format(UP_API_ENDPOINT),headers=UP_CREDS_HEADER)
 
     if resp.status_code == 200:
@@ -72,7 +72,7 @@ def getUpAccounts():
     return json.loads(resp.content)["data"]
 
 def getTransactions(bankAccounts):
-    """Get past x days of transactions from the cheque account"""
+    #Get past x days of transactions from the cheque account
     transactions = []
     filteredTransactions = []
 
