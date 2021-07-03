@@ -1,5 +1,5 @@
-# ynab-upbank-sync
-https://api.up.com.au/ &amp; https://api.youneedabudget.com/
+# upbank-data
+https://api.up.com.au/
 
 # usage
 cp config/template.json ./config.json
