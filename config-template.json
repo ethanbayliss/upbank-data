@@ -1,3 +1,4 @@
 {
-	"upbankApiKey": ""
+	"UP_API_KEY": "",
+	"TIMEZONE": "Australia/Perth"
 }

@@ -12,10 +12,10 @@ conf.load("config.json")
 
 #constants
 UP_API_ENDPOINT = "https://api.up.com.au/api/v1"
-TIME_NOW = pytz.timezone("Australia/Perth").localize(datetime.now())
+TIME_NOW = pytz.timezone(conf.get("TIMEZONE")).localize(datetime.now())
 
 #creds
-UP_CREDS_HEADER = {"Authorization": "Bearer {}".format(conf.get("upbankApiKey"))}
+UP_CREDS_HEADER = {"Authorization": "Bearer {}".format(conf.get("UP_API_KEY"))}
 
 def main():
     #Main function ran on script startup
