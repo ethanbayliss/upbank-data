@@ -35,8 +35,12 @@ def main():
     #         printCsv(getTransactions(account, 30),bankAccounts)
     #         break
 
+    days = int(input("Enter how many days of transactions to grab: "))
+
+    print("Getting {} days of transactions".format(days))
+
     for account in bankAccounts:
-        saveCsv(getTransactions(account, 365), account)
+        saveCsv(getTransactions(account, days), account)
 
 def saveCsv(transactions,account):
     output = open("data/{}.csv".format(account['attributes']['displayName']), "w", encoding="utf-8")
