@@ -5,7 +5,10 @@ import conf
 import requests
 import json
 from datetime import datetime, timedelta
+from dateutil import parser
 import pytz
+import csv
+import io
 
 #conf
 conf.load("config.json")
@@ -13,6 +16,8 @@ conf.load("config.json")
 #constants
 UP_API_ENDPOINT = "https://api.up.com.au/api/v1"
 TIME_NOW = pytz.timezone(conf.get("TIMEZONE")).localize(datetime.now())
+#DEBUG = not __debug__
+DEBUG = False
 
 #creds
 UP_CREDS_HEADER = {"Authorization": "Bearer {}".format(conf.get("UP_API_KEY"))}
@@ -20,68 +25,56 @@ UP_CREDS_HEADER = {"Authorization": "Bearer {}".format(conf.get("UP_API_KEY"))}
 def main():
     #Main function ran on script startup
     if not testUpbankApi():
-        print("YNAB API connection failed, please check your config file")
-        exit(1)
+        exit(10)
 
     bankAccounts = getUpAccounts()
 
-    #Get cheque account
-    for account in bankAccounts:
-        if account["attributes"]["accountType"] == "TRANSACTIONAL":
-            chequeAccount = account
-            break
+    # #Get cheque account
+    # for account in bankAccounts:
+    #     if account['attributes']['displayName'] == 'Spending':
+    #         printCsv(getTransactions(account, 30),bankAccounts)
+    #         break
 
-    printCsv(getTransactions(chequeAccount, -1),bankAccounts)
-    
+    for account in bankAccounts:
+        saveCsv(getTransactions(account, 365), account)
+
+def saveCsv(transactions,account):
+    output = open("data/{}.csv".format(account['attributes']['displayName']), "w", encoding="utf-8")
+    writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC)
+    writer.writerow(["Date","Payee","Memo","Amount"])
+    for transaction in transactions:
+        writer.writerow([
+            parser.parse(transaction["attributes"]["createdAt"]).strftime('%d-%m-%Y'),
+            transaction["attributes"]["description"],
+            "Imported: " + TIME_NOW.strftime('%d-%m-%Y'),
+            transaction["attributes"]["amount"]["value"],
+        ])
 
 def printCsv(transactions,bankAccounts):
-    print("id,accountId,accountName,description,rawText,createdAt,value,parentCategory,category,transferAccountId,transferAccount")
+    print("Date,Payee,Memo,Amount")
     for transaction in transactions:
-        print("{},{},{},{},{},{},{}".format(
-            transaction["id"],
-            transaction['relationships']['account']['data']['id'],
-            getAccountName(bankAccounts,transaction['relationships']['account']['data']['id']),
+        print("{},{},{},{}".format(
+            parser.parse(transaction["attributes"]["createdAt"]).strftime('%d-%m-%Y'),
             transaction["attributes"]["description"],
-            transaction['attributes']['rawText'],
-            transaction["attributes"]["createdAt"],
+            "Imported: " + TIME_NOW.strftime('%d-%m-%Y'),
             transaction["attributes"]["amount"]["value"],
-        ),
-        end="")
-
-        if(transaction['relationships']['category']['data']):
-            print(",{},{}".format(
-                transaction['relationships']['parentCategory']['data']['id'],
-                transaction['relationships']['category']['data']['id'],
-            ),
-            end="")
-        else:
-            if(transaction['relationships']['transferAccount']['data']):
-                print(",transfer,transfer",end="")
-            else:
-                print(",,",end="")
-
-        if(transaction['relationships']['transferAccount']['data']):
-            print(",{},{}".format(
-                transaction['relationships']['transferAccount']['data']['id'],
-                getAccountName(bankAccounts,transaction['relationships']['transferAccount']['data']['id']),
-            ),
-            end="")
-        else:
-            print(",,",end="")
-
-        print()
+        ))
 
 def testUpbankApi():
-    #Make a call to up bank's API and parse result to determine if key is correct
+    '''
+    Make a call to up bank's API and parse result to determine if key is correct
+    '''
     apiStatus = False
 
     resp = requests.get("{}/util/ping".format(UP_API_ENDPOINT),headers=UP_CREDS_HEADER)
 
     if resp.status_code == 200:
-        print("Up Bank Connected: {}".format(json.loads(resp.content)["meta"]["statusEmoji"]))
+        if DEBUG: print("Up Bank Connected: {}".format(json.loads(resp.content)["meta"]["statusEmoji"]))
         apiStatus = True
     if resp.status_code != 200:
         print("Up Bank connection failed: GET /util/ping {}".format(resp.status_code))
+        raise ValueError("Up Bank credentials may be wrong")
+    
     return apiStatus
 
 def getUpAccounts():
@@ -90,9 +83,9 @@ def getUpAccounts():
     accounts = []
 
     if resp.status_code == 200:
-        print("Found Up Bank Accounts: ")
+        if DEBUG: print("Found Up Bank Accounts: ")
         for account in json.loads(resp.content)["data"]:
-            print("\t{}".format(account["attributes"]["displayName"]))
+            if DEBUG: print("\t{}".format(account["attributes"]["displayName"]))
             accounts.append(account)
     if resp.status_code != 200:
         print("Up Bank connection failed: GET /accounts {}".format(resp.status_code))
