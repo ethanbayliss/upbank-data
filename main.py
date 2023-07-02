@@ -77,7 +77,7 @@ def testUpbankApi():
         apiStatus = True
     if resp.status_code != 200:
         print("Up Bank connection failed: GET /util/ping {}".format(resp.status_code))
-        raise ValueError("Up Bank credentials may be wrong")
+        raise ValueError("Up Bank credentials may be wrong. Move the config-template.json template to config.json and replace the U API credential")
     
     return apiStatus
 
