@@ -50,7 +50,10 @@ def saveCsv(transactions,account):
         writer.writerow([
             parser.parse(transaction["attributes"]["createdAt"]).strftime('%d-%m-%Y'),
             transaction["attributes"]["description"],
-            "Imported: " + TIME_NOW.strftime('%d-%m-%Y'),
+            "{}: {}".format(
+                parser.parse(transaction['attributes']['createdAt']).strftime('%I:%M%p'),
+                transaction['attributes']['rawText'],
+            ),
             transaction["attributes"]["amount"]["value"],
         ])
 
