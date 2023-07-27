@@ -16,6 +16,7 @@ conf.load("config.json")
 #constants
 UP_API_ENDPOINT = "https://api.up.com.au/api/v1"
 TIME_NOW = pytz.timezone(conf.get("TIMEZONE")).localize(datetime.now())
+TZ = pytz.timezone(conf.get("TIMEZONE"))
 #DEBUG = not __debug__
 DEBUG = False
 
@@ -51,7 +52,7 @@ def saveCsv(transactions,account):
             parser.parse(transaction["attributes"]["createdAt"]).strftime('%d-%m-%Y'),
             transaction["attributes"]["description"],
             "{}: {}".format(
-                parser.parse(transaction['attributes']['createdAt']).strftime('%I:%M%p'),
+                parser.parse(transaction['attributes']['createdAt']).astimezone(TZ).strftime('%I:%M%p'),
                 transaction['attributes']['rawText'],
             ),
             transaction["attributes"]["amount"]["value"],
