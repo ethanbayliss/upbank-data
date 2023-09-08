@@ -9,5 +9,6 @@ pyenv activate upbank-data
 cp config-template.json ./config.json #fill in
 
 pip install -r requirements.txt
-python run.py
+python main.py
+#follow prompts
 ```

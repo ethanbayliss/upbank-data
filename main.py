@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 from dateutil import parser
 import pytz
 import csv
-import io
 
 #conf
 conf.load("config.json")
@@ -30,18 +29,16 @@ def main():
 
     bankAccounts = getUpAccounts()
 
-    # #Get cheque account
-    # for account in bankAccounts:
-    #     if account['attributes']['displayName'] == 'Spending':
-    #         printCsv(getTransactions(account, 30),bankAccounts)
-    #         break
-
-    days = int(input("Enter how many days of transactions to grab: "))
+    days = getDays()
 
     print("Getting {} days of transactions".format(days))
 
     for account in bankAccounts:
         saveCsv(getTransactions(account, days), account)
+
+def getDays():
+    days = int(input("Enter how many days of transactions to grab: "))
+    return days
 
 def saveCsv(transactions,account):
     output = open("data/{}.csv".format(account['attributes']['displayName']), "w", encoding="utf-8")
