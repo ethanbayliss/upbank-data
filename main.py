@@ -23,7 +23,6 @@ DEBUG = False
 UP_CREDS_HEADER = {"Authorization": "Bearer {}".format(conf.get("UP_API_KEY"))}
 
 def main():
-    #Main function ran on script startup
     if not testUpbankApi():
         exit(10)
 
@@ -46,7 +45,7 @@ def saveCsv(transactions,account):
     writer.writerow(["Date","Payee","Memo","Amount"])
     for transaction in transactions:
         writer.writerow([
-            parser.parse(transaction["attributes"]["createdAt"]).strftime('%d-%m-%Y'),
+            parser.parse(transaction["attributes"]["createdAt"]).astimezone(TZ).strftime('%d-%m-%Y'),
             transaction["attributes"]["description"],
             "{}: {}".format(
                 parser.parse(transaction['attributes']['createdAt']).astimezone(TZ).strftime('%I:%M%p'),
