@@ -28,14 +28,14 @@ def main():
 
     bankAccounts = getUpAccounts()
 
-    days = getDays()
+    days = getInputDays()
 
     print("Getting {} days of transactions".format(days))
 
     for account in bankAccounts:
         saveCsv(getTransactions(account, days), account)
 
-def getDays():
+def getInputDays():
     days = int(input("Enter how many days of transactions to grab: "))
     return days
 
